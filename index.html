@@ -8,163 +8,205 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     body { background: linear-gradient(135deg, #0a0a0a, #1a1a2e); }
-    .neon { text-shadow: 0 0 20px #22ff88, 0 0 40px #22ff88; }
+    .neon-green { text-shadow: 0 0 20px #22ff88, 0 0 40px #22ff88; }
+    .neon-orange { text-shadow: 0 0 20px #ff8866, 0 0 40px #ff8866; }
   </style>
 </head>
 <body class="text-white min-h-screen pb-12">
-  <div class="max-w-4xl mx-auto p-6">
-    <h1 class="text-6xl font-bold text-center neon mb-2">THE GREAT WEIGHT WAR</h1>
-    <p class="text-center text-emerald-400 text-xl mb-8">Call vs Martin — 1 November 2026</p>
+  <div class="max-w-5xl mx-auto p-6">
+    <h1 class="text-6xl font-bold text-center neon-green mb-2">THE GREAT WEIGHT WAR</h1>
+    <p class="text-center text-emerald-400 text-2xl mb-4">Call vs Martin</p>
+    
+    <!-- Nedräknare -->
+    <div id="countdown" class="text-center text-3xl font-bold mb-10 text-yellow-400"></div>
 
     <div class="grid md:grid-cols-2 gap-8">
       <!-- Call -->
-      <div class="bg-zinc-900/80 border border-emerald-500 rounded-3xl p-8">
-        <h2 class="text-4xl font-bold text-emerald-400 mb-6">CALL 🟢</h2>
-        <div id="call-start" class="text-2xl mb-4"></div>
+      <div class="bg-zinc-900/90 border-2 border-emerald-500 rounded-3xl p-8">
+        <h2 class="text-4xl font-bold text-emerald-400 mb-6 flex items-center gap-3">CALL 🟢</h2>
+        <div id="call-start" class="text-2xl mb-6"></div>
+        
         <input id="call-weight" type="number" step="0.1" placeholder="Nuvarande vikt (kg)" 
-               class="w-full bg-zinc-800 text-3xl p-4 rounded-2xl focus:outline-none focus:border-emerald-500 border border-zinc-700">
+               class="w-full bg-zinc-800 text-3xl p-5 rounded-2xl border border-zinc-700 focus:border-emerald-500 focus:outline-none">
+        
+        <input id="call-comment" type="text" placeholder="Kommentar / vecka" 
+               class="w-full mt-4 bg-zinc-800 p-4 rounded-2xl border border-zinc-700">
+        
         <button onclick="updateWeight('call')" 
-                class="mt-4 w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-2xl text-xl font-bold transition">
-          SPARA VIKT
+                class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 py-5 rounded-2xl text-xl font-bold transition">
+          SPARA VIKT + KOMMENTAR
         </button>
-        <div id="call-history" class="mt-6 text-sm"></div>
+        
+        <div id="call-history" class="mt-8 text-sm space-y-3"></div>
       </div>
 
       <!-- Martin -->
-      <div class="bg-zinc-900/80 border border-orange-500 rounded-3xl p-8">
-        <h2 class="text-4xl font-bold text-orange-400 mb-6">MARTIN 🔴</h2>
-        <div id="martin-start" class="text-2xl mb-4"></div>
+      <div class="bg-zinc-900/90 border-2 border-orange-500 rounded-3xl p-8">
+        <h2 class="text-4xl font-bold text-orange-400 mb-6 flex items-center gap-3">MARTIN 🔴</h2>
+        <div id="martin-start" class="text-2xl mb-6"></div>
+        
         <input id="martin-weight" type="number" step="0.1" placeholder="Nuvarande vikt (kg)" 
-               class="w-full bg-zinc-800 text-3xl p-4 rounded-2xl focus:outline-none focus:border-orange-500 border border-zinc-700">
+               class="w-full bg-zinc-800 text-3xl p-5 rounded-2xl border border-zinc-700 focus:border-orange-500 focus:outline-none">
+        
+        <input id="martin-comment" type="text" placeholder="Kommentar / vecka" 
+               class="w-full mt-4 bg-zinc-800 p-4 rounded-2xl border border-zinc-700">
+        
         <button onclick="updateWeight('martin')" 
-                class="mt-4 w-full bg-orange-600 hover:bg-orange-500 py-4 rounded-2xl text-xl font-bold transition">
-          SPARA VIKT
+                class="mt-6 w-full bg-orange-600 hover:bg-orange-500 py-5 rounded-2xl text-xl font-bold transition">
+          SPARA VIKT + KOMMENTAR
         </button>
-        <div id="martin-history" class="mt-6 text-sm"></div>
+        
+        <div id="martin-history" class="mt-8 text-sm space-y-3"></div>
       </div>
     </div>
 
     <!-- Graf -->
-    <div class="mt-10 bg-zinc-900/80 rounded-3xl p-8">
+    <div class="mt-12 bg-zinc-900/90 rounded-3xl p-8">
       <h3 class="text-2xl font-bold mb-6 text-center">VIKTSUTVECKLING</h3>
-      <canvas id="weightChart" height="120"></canvas>
+      <canvas id="weightChart" height="140"></canvas>
     </div>
 
     <!-- Status -->
-    <div id="status" class="mt-8 text-center text-3xl font-bold"></div>
+    <div id="status" class="mt-10 text-center text-4xl font-bold py-6 rounded-3xl"></div>
   </div>
 
   <script>
-    let data = JSON.parse(localStorage.getItem('weightWar')) || {
-      startDate: new Date().toISOString().split('T')[0],
-      call: { start: null, weights: [] },
-      martin: { start: null, weights: [] }
-    };
-
-    const chartData = {
-      labels: [],
-      call: [],
-      martin: []
+    let data = JSON.parse(localStorage.getItem('weightWar2026')) || {
+      call: { start: null, entries: [] },
+      martin: { start: null, entries: [] }
     };
 
     function saveData() {
-      localStorage.setItem('weightWar', JSON.stringify(data));
+      localStorage.setItem('weightWar2026', JSON.stringify(data));
       renderAll();
     }
 
     function updateWeight(person) {
-      const input = document.getElementById(person + '-weight');
-      const weight = parseFloat(input.value);
-      if (!weight) return alert("Skriv in en vikt!");
+      const weightInput = document.getElementById(person + '-weight');
+      const commentInput = document.getElementById(person + '-comment');
+      const weight = parseFloat(weightInput.value);
+      
+      if (!weight) return alert("Ange en vikt!");
 
       if (!data[person].start) {
         data[person].start = weight;
       }
 
-      data[person].weights.push({
+      data[person].entries.push({
         date: new Date().toISOString().split('T')[0],
-        weight: weight
+        weight: weight,
+        comment: commentInput.value.trim()
       });
 
-      input.value = '';
+      weightInput.value = '';
+      commentInput.value = '';
       saveData();
     }
 
     function renderAll() {
-      // Startvikter
-      document.getElementById('call-start').innerHTML = data.call.start ? 
-        `Start: <span class="text-4xl">${data.call.start} kg</span>` : 'Ingen startvikt än';
-      
-      document.getElementById('martin-start').innerHTML = data.martin.start ? 
-        `Start: <span class="text-4xl">${data.martin.start} kg</span>` : 'Ingen startvikt än';
-
-      // Historik
-      renderHistory('call');
-      renderHistory('martin');
-
-      // Graf
+      renderPerson('call');
+      renderPerson('martin');
       updateChart();
-
-      // Status
-      const callLatest = data.call.weights.length ? data.call.weights[data.call.weights.length-1].weight : data.call.start;
-      const martinLatest = data.martin.weights.length ? data.martin.weights[data.martin.weights.length-1].weight : data.martin.start;
-
-      let statusHTML = '';
-      if (callLatest && martinLatest) {
-        const diff = (martinLatest - callLatest).toFixed(1);
-        if (diff > 0) {
-          statusHTML = `<span class="text-emerald-400">CALL LEDER MED ${diff} KG</span>`;
-        } else if (diff < 0) {
-          statusHTML = `<span class="text-orange-400">MARTIN LEDER MED ${Math.abs(diff)} KG</span>`;
-        } else {
-          statusHTML = `<span class="text-yellow-400">JÄMNT LÄGE!</span>`;
-        }
-      }
-      document.getElementById('status').innerHTML = statusHTML;
+      updateStatus();
+      updateCountdown();
     }
 
-    function renderHistory(person) {
-      const container = document.getElementById(person + '-history');
-      let html = '<div class="font-bold mb-2">Historik:</div>';
-      const entries = data[person].weights;
-      entries.forEach(entry => {
-        html += `<div class="flex justify-between py-1 border-b border-zinc-700">
-          <span>${entry.date}</span>
-          <span class="font-mono">${entry.weight} kg</span>
-        </div>`;
+    function renderPerson(person) {
+      const startEl = document.getElementById(person + '-start');
+      const historyEl = document.getElementById(person + '-history');
+      
+      startEl.innerHTML = data[person].start ? 
+        `Startvikt: <span class="text-4xl font-bold">${data[person].start} kg</span>` : 
+        'Ingen startvikt ännu';
+
+      let html = '';
+      data[person].entries.forEach(entry => {
+        html += `
+          <div class="bg-zinc-800/70 p-4 rounded-2xl">
+            <div class="flex justify-between">
+              <span class="font-mono">${entry.date}</span>
+              <span class="font-bold text-xl">${entry.weight} kg</span>
+            </div>
+            ${entry.comment ? `<p class="text-zinc-400 mt-2">${entry.comment}</p>` : ''}
+          </div>`;
       });
-      container.innerHTML = html;
+      historyEl.innerHTML = html;
+    }
+
+    function updateStatus() {
+      const callLatest = data.call.entries.length ? data.call.entries[data.call.entries.length-1].weight : data.call.start;
+      const martinLatest = data.martin.entries.length ? data.martin.entries[data.martin.entries.length-1].weight : data.martin.start;
+      
+      const statusEl = document.getElementById('status');
+      
+      if (!callLatest || !martinLatest) {
+        statusEl.innerHTML = 'Väntar på startvikter...';
+        return;
+      }
+
+      const diff = (martinLatest - callLatest).toFixed(1);
+      if (diff > 0) {
+        statusEl.innerHTML = `CALL LEDER MED ${diff} KG 🟢`;
+        statusEl.className = "mt-10 text-center text-4xl font-bold py-6 rounded-3xl bg-emerald-900/50 text-emerald-400";
+      } else if (diff < 0) {
+        statusEl.innerHTML = `MARTIN LEDER MED ${Math.abs(diff)} KG 🔴`;
+        statusEl.className = "mt-10 text-center text-4xl font-bold py-6 rounded-3xl bg-orange-900/50 text-orange-400";
+      } else {
+        statusEl.innerHTML = `JÄMNT LÄGE! ⚔️`;
+        statusEl.className = "mt-10 text-center text-4xl font-bold py-6 rounded-3xl bg-yellow-900/50 text-yellow-400";
+      }
+    }
+
+    function updateCountdown() {
+      const target = new Date('2026-11-01T00:00:00').getTime();
+      const interval = setInterval(() => {
+        const now = new Date().getTime();
+        const diff = target - now;
+        
+        if (diff < 0) {
+          document.getElementById('countdown').innerHTML = "BETTET ÄR SLUT!";
+          clearInterval(interval);
+          return;
+        }
+        
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        document.getElementById('countdown').innerHTML = `📅 ${days} dagar kvar till 1 november`;
+      }, 1000 * 60 * 60);
     }
 
     function updateChart() {
-      // Simple chart update (you can expand dates)
       const ctx = document.getElementById('weightChart');
       if (window.myChart) window.myChart.destroy();
+
+      const dates = [...new Set([
+        ...data.call.entries.map(e => e.date),
+        ...data.martin.entries.map(e => e.date)
+      ])].sort();
 
       window.myChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: data.call.weights.map(w => w.date).concat(data.martin.weights.map(w => w.date)).filter((v, i, a) => a.indexOf(v) === i).sort(),
+          labels: dates,
           datasets: [
             {
               label: 'Call',
-              data: data.call.weights.map(w => w.weight),
+              data: data.call.entries.map(e => e.weight),
               borderColor: '#22ff88',
-              tension: 0.3,
-              borderWidth: 4
+              borderWidth: 5,
+              tension: 0.3
             },
             {
               label: 'Martin',
-              data: data.martin.weights.map(w => w.weight),
+              data: data.martin.entries.map(e => e.weight),
               borderColor: '#ff8866',
-              tension: 0.3,
-              borderWidth: 4
+              borderWidth: 5,
+              tension: 0.3
             }
           ]
         },
         options: {
           responsive: true,
-          plugins: { legend: { labels: { color: '#ddd', font: { size: 16 } } } },
+          plugins: { legend: { labels: { color: '#ddd', font: { size: 18 } } } },
           scales: { y: { grid: { color: '#333' }, ticks: { color: '#aaa' } }, x: { grid: { color: '#333' }, ticks: { color: '#aaa' } }}
         }
       });
