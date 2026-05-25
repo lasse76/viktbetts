@@ -17,41 +17,41 @@
 <body class="text-white min-h-screen pb-12">
   <div class="max-w-6xl mx-auto p-6">
     <h1 class="text-6xl font-bold text-center neon-green mb-2">THE GREAT WEIGHT WAR</h1>
-    <p class="text-center text-emerald-400 text-2xl mb-6">Call vs Martin — 1 November 2026</p>
+    <p class="text-center text-emerald-400 text-2xl mb-6">Calle vs Martin — 1 November 2026</p>
     
     <!-- Nedräknare -->
     <div id="countdown" class="text-center text-4xl font-bold mb-12 text-yellow-400"></div>
 
     <div class="grid md:grid-cols-2 gap-8">
-      <!-- Call -->
+      <!-- Calle -->
       <div class="card bg-zinc-900/90 border-2 border-emerald-500 rounded-3xl p-8">
         <div class="flex justify-between items-center mb-6">
-          <h2 class="text-4xl font-bold text-emerald-400">CALL 🟢</h2>
-          <div id="call-profile" class="w-20 h-20 rounded-2xl overflow-hidden border-2 border-emerald-500"></div>
+          <h2 class="text-4xl font-bold text-emerald-400">CALLE 🟢</h2>
+          <div id="calle-profile" class="w-20 h-20 rounded-2xl overflow-hidden border-2 border-emerald-500"></div>
         </div>
         
-        <input type="file" id="call-profile-upload" accept="image/*" class="hidden" onchange="uploadProfile('call')">
-        <button onclick="document.getElementById('call-profile-upload').click()" 
+        <input type="file" id="calle-profile-upload" accept="image/*" class="hidden" onchange="uploadProfile('calle')">
+        <button onclick="document.getElementById('calle-profile-upload').click()" 
                 class="text-xs bg-zinc-800 px-4 py-2 rounded-xl mb-6">↑ Byt profilbild</button>
 
-        <div id="call-start" class="text-2xl mb-6"></div>
+        <div id="calle-start" class="text-2xl mb-6"></div>
         
-        <input id="call-weight" type="number" step="0.1" placeholder="Nuvarande vikt (kg)" 
+        <input id="calle-weight" type="number" step="0.1" placeholder="Nuvarande vikt (kg)" 
                class="w-full bg-zinc-800 text-3xl p-5 rounded-2xl border border-zinc-700 focus:border-emerald-500">
         
-        <input id="call-comment" type="text" placeholder="Kommentar denna vecka" 
+        <input id="calle-comment" type="text" placeholder="Kommentar denna vecka" 
                class="w-full mt-4 bg-zinc-800 p-4 rounded-2xl border border-zinc-700">
         
-        <input type="file" id="call-image" accept="image/*" class="hidden" onchange="uploadWeeklyImage('call')">
-        <button onclick="document.getElementById('call-image').click()" 
+        <input type="file" id="calle-image" accept="image/*" class="hidden" onchange="uploadWeeklyImage('calle')">
+        <button onclick="document.getElementById('calle-image').click()" 
                 class="mt-4 w-full bg-zinc-700 hover:bg-zinc-600 py-3 rounded-2xl text-sm">+ Lägg till veckobild</button>
 
-        <button onclick="updateWeight('call')" 
+        <button onclick="updateWeight('calle')" 
                 class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 py-6 rounded-2xl text-xl font-bold">
           SPARA VIKT & UPPDATERING
         </button>
         
-        <div id="call-history" class="mt-8 space-y-6"></div>
+        <div id="calle-history" class="mt-8 space-y-6"></div>
       </div>
 
       <!-- Martin -->
@@ -98,7 +98,7 @@
 
   <script>
     let data = JSON.parse(localStorage.getItem('weightWar2026')) || {
-      call: { start: null, profile: null, entries: [] },
+      calle: { start: null, profile: null, entries: [] },
       martin: { start: null, profile: null, entries: [] }
     };
 
@@ -155,7 +155,7 @@
     }
 
     function renderAll() {
-      renderPerson('call');
+      renderPerson('calle');
       renderPerson('martin');
       updateChart();
       updateStatus();
@@ -163,17 +163,14 @@
     }
 
     function renderPerson(person) {
-      // Profile image
       const profileDiv = document.getElementById(person + '-profile');
       if (data[person].profile) {
         profileDiv.innerHTML = `<img src="${data[person].profile}" class="w-full h-full object-cover">`;
       }
 
-      // Start weight
       document.getElementById(person + '-start').innerHTML = data[person].start ? 
         `Start: <span class="text-4xl font-bold">${data[person].start} kg</span>` : 'Ingen startvikt än';
 
-      // History
       const historyEl = document.getElementById(person + '-history');
       let html = '';
       data[person].entries.forEach(entry => {
@@ -190,19 +187,68 @@
       historyEl.innerHTML = html || '<p class="text-zinc-500">Inga uppdateringar än...</p>';
     }
 
-    // (Resten av funktionerna är desamma som tidigare - updateStatus, updateCountdown, updateChart)
     function updateStatus() {
-      const callLatest = data.call.entries.length ? data.call.entries[data.call.entries.length-1].weight : data.call.start;
+      const calleLatest = data.calle.entries.length ? data.calle.entries[data.calle.entries.length-1].weight : data.calle.start;
       const martinLatest = data.martin.entries.length ? data.martin.entries[data.martin.entries.length-1].weight : data.martin.start;
       
       const statusEl = document.getElementById('status');
-      if (!callLatest || !martinLatest) {
+      if (!calleLatest || !martinLatest) {
         statusEl.innerHTML = 'Väntar på startvikter...';
         statusEl.className = "mt-10 text-center text-4xl font-bold py-8 rounded-3xl bg-zinc-800";
         return;
       }
 
-      const diff = (martinLatest - callLatest).toFixed(1);
+      const diff = (martinLatest - calleLatest).toFixed(1);
       if (diff > 0) {
-        statusEl.innerHTML = `CALL LEDER MED ${diff} KG 🏆`;
-        statusEl.className = "
+        statusEl.innerHTML = `CALLE LEDER MED ${diff} KG 🏆`;
+        statusEl.className = "mt-10 text-center text-4xl font-bold py-8 rounded-3xl bg-emerald-900/50 text-emerald-400";
+      } else if (diff < 0) {
+        statusEl.innerHTML = `MARTIN LEDER MED ${Math.abs(diff)} KG 🏆`;
+        statusEl.className = "mt-10 text-center text-4xl font-bold py-8 rounded-3xl bg-orange-900/50 text-orange-400";
+      } else {
+        statusEl.innerHTML = `JÄMNT LÄGE! ⚔️`;
+        statusEl.className = "mt-10 text-center text-4xl font-bold py-8 rounded-3xl bg-yellow-900/50 text-yellow-400";
+      }
+    }
+
+    function updateCountdown() {
+      const target = new Date('2026-11-01').getTime();
+      setInterval(() => {
+        const now = Date.now();
+        const diff = target - now;
+        const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+        document.getElementById('countdown').textContent = 
+          days > 0 ? `📅 ${days} dagar kvar till 1 november` : "BETTET ÄR ÖVER!";
+      }, 86400000);
+    }
+
+    function updateChart() {
+      const ctx = document.getElementById('weightChart');
+      if (window.myChart) window.myChart.destroy();
+
+      const dates = [...new Set([
+        ...data.calle.entries.map(e => e.date),
+        ...data.martin.entries.map(e => e.date)
+      ])].sort();
+
+      window.myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: dates,
+          datasets: [
+            { label: 'Calle', data: data.calle.entries.map(e => e.weight), borderColor: '#22ff88', borderWidth: 5, tension: 0.3 },
+            { label: 'Martin', data: data.martin.entries.map(e => e.weight), borderColor: '#ff8866', borderWidth: 5, tension: 0.3 }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { labels: { color: '#ddd', font: { size: 16 } } } },
+          scales: { y: { grid: { color: '#333' }, ticks: { color: '#aaa' } }, x: { grid: { color: '#333' }, ticks: { color: '#aaa' } }}
+        }
+      });
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>
